@@ -13,15 +13,13 @@ import com.tinkerpop.blueprints.impls.orient.OrientGraphFactory;
 
 public class DBLoader
 {
-	static OrientGraph orientDB;
-	static OrientGraphFactory factory;
-	static String path = "plocal:C:/temp/graph/db";
 	
 	public static void main(String[] args)
 	{
-		resetOrientDB(path);
-		orientDB = new OrientGraph(path, "admin", "admin"); 
-		orientDB.createVertexType("page");
+		LoadableDatabase orientDB = new DBOrientDB();
+		orientDB.reset();
+		orientDB.start();
+		
 		DataLoader loader = new DataLoader();
 		try
 		{
@@ -47,43 +45,7 @@ public class DBLoader
 			// TODO Auto-generated catch block
 		}
 		
-		TreeMap<String, Vertex> vertexMap = new TreeMap<String, Vertex>();
-		
-		long vertexStartTime = System.currentTimeMillis();
-		
-		for(Map.Entry<String,DataNode> entry : loader.getNodeMap().entrySet()) 
-		{
-			String name = entry.getKey();
-			DataNode node = entry.getValue();
-			
-			Vertex vertex = orientDB.addVertex("page");
-			vertex.setProperty("name", node.getNodeName());
-			
-			vertexMap.put(node.getNodeName(), vertex);
-		}
-		
-		long vertexTime = System.currentTimeMillis() - vertexStartTime;
-		
-		System.out.println("Vertex Load Time: " + vertexTime + " ms");
-		
-		long edgeStartTime = System.currentTimeMillis();
-		
-		for(DataEdge edge : loader.getEdgeMap()) 
-		{
-			Vertex from = vertexMap.get(edge.getFromNode());
-			Vertex to = vertexMap.get(edge.getToNode());
-			
-			OrientEdge orientEdge = orientDB.addEdge("", from, to, "");
-		}
-		
-		long edgeTime = System.currentTimeMillis() - edgeStartTime;
-		
-		System.out.println("Edge Load Time: " + edgeTime + " ms");
-	}
-
-	private static void resetOrientDB(String dbPath)
-	{
-		orientDB = new OrientGraph(dbPath, "admin", "admin");
-		orientDB.drop();
+		orientDB.loadNodes(loader.getNodeMap().values());
+		orientDB.loadEdges(loader.getEdgeMap());
 	}
 }

@@ -1,33 +1,76 @@
 package CPSC571.driver;
 
 import java.util.Collection;
+import java.util.HashMap;
+
+import com.tinkerpop.blueprints.Edge;
+import com.tinkerpop.blueprints.Vertex;
+import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 
 public class DBOrientDB implements LoadableDatabase
 {
-	private static String DBPath = "";
+	private static String DBPath = "plocal:C:/temp/graph/db";
+	private OrientGraph orientDB;
+	private HashMap<String, Vertex> vertexMap;
+	
+	//timings
+	private long vertexLoadStartTime;
+	private long vertexLoadEndTime;
+	private long edgeLoadStartTime;
+	private long edgeLoadEndTime;
 
 	public void reset()
 	{
-		// TODO Auto-generated method stub
-		
+		orientDB = new OrientGraph(DBPath, "admin", "admin");
+		orientDB.drop();
 	}
 
 	public void start()
 	{
-		// TODO Auto-generated method stub
-		
+		orientDB = new OrientGraph(DBPath, "admin", "admin");
+		orientDB.createVertexType("page");
+		orientDB.createEdgeType("link");
+		vertexMap = new HashMap<String, Vertex>();
 	}
 
 	public void loadNodes(Collection<DataNode> nodeCollection)
 	{
-		// TODO Auto-generated method stub
+		vertexLoadStartTime = System.currentTimeMillis();
 		
+		for(DataNode node : nodeCollection)
+		{
+			Vertex vertex = orientDB.addVertex("class:page");
+			vertex.setProperty("name", node.getNodeName());
+			vertexMap.put(node.getNodeName(), vertex);
+			orientDB.commit();
+			System.out.println("Committed Vertex: " + vertex.getProperty("name"));
+		}
+		
+		vertexLoadEndTime = System.currentTimeMillis();
+		
+		System.out.println("Vertex Time: " + (vertexLoadEndTime - vertexLoadStartTime));
 	}
 
 	public void loadEdges(Collection<DataEdge> edgeCollection)
 	{
-		// TODO Auto-generated method stub
+		edgeLoadStartTime = System.currentTimeMillis();
 		
+		for(DataEdge dataEdge : edgeCollection)
+		{
+			Vertex fromVertex = vertexMap.get(dataEdge.getFromNode());
+			Vertex toVertex = vertexMap.get(dataEdge.getToNode());
+			
+			if(fromVertex == null || toVertex == null)
+			{
+				continue;
+			}
+			
+			Edge edge = orientDB.addEdge("class:link", fromVertex, toVertex, "");
+			orientDB.commit();
+			System.out.println("Committed " + edge.getLabel());
+		}
+		
+		edgeLoadEndTime = System.currentTimeMillis();
 	}
 
 }

@@ -18,6 +18,8 @@ public class DBOrientDB implements LoadableDatabase
 	private long vertexLoadEndTime;
 	private long edgeLoadStartTime;
 	private long edgeLoadEndTime;
+	private long vertexLoadTime;
+	private long edgeLoadTime;
 
 	public void reset()
 	{
@@ -43,12 +45,13 @@ public class DBOrientDB implements LoadableDatabase
 			vertex.setProperty("name", node.getNodeName());
 			vertexMap.put(node.getNodeName(), vertex);
 			orientDB.commit();
-			System.out.println("Committed Vertex: " + vertex.getProperty("name"));
+			//System.out.println("Committed Vertex: " + vertex.getProperty("name"));
 		}
 		
 		vertexLoadEndTime = System.currentTimeMillis();
+		vertexLoadTime = vertexLoadEndTime - vertexLoadStartTime;
 		
-		System.out.println("Vertex Time: " + (vertexLoadEndTime - vertexLoadStartTime));
+		//System.out.println("Vertex Time: " + (vertexLoadEndTime - vertexLoadStartTime));
 	}
 
 	public void loadEdges(Collection<DataEdge> edgeCollection)
@@ -65,12 +68,23 @@ public class DBOrientDB implements LoadableDatabase
 				continue;
 			}
 			
-			Edge edge = orientDB.addEdge("class:link", fromVertex, toVertex, "");
+			Edge edge = orientDB.addEdge("class:link", fromVertex, toVertex, "link");
 			orientDB.commit();
-			System.out.println("Committed " + edge.getLabel());
+			System.out.println("Committed " + fromVertex.getId() + "->" + toVertex.getId());
 		}
 		
 		edgeLoadEndTime = System.currentTimeMillis();
+		edgeLoadTime = edgeLoadEndTime - edgeLoadStartTime;
+	}
+
+	public long getVertexLoadTime()
+	{
+		return vertexLoadTime;
+	}
+
+	public long getEdgeLoadTime()
+	{
+		return edgeLoadTime;
 	}
 
 }

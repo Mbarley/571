@@ -8,4 +8,6 @@ public interface LoadableDatabase
 	public void start();
 	public void loadNodes(Collection<DataNode> nodeCollection);
 	public void loadEdges(Collection<DataEdge> edgeCollection);
+	public long getVertexLoadTime();
+	public long getEdgeLoadTime();
 }

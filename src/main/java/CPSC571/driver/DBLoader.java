@@ -23,7 +23,7 @@ public class DBLoader
 		DataLoader loader = new DataLoader();
 		try
 		{
-			loader.setInputFile("links.tsv");
+			loader.setInputFile("youtube.txt");
 		}
 		catch (FileNotFoundException e)
 		{
@@ -46,6 +46,8 @@ public class DBLoader
 		}
 		
 		orientDB.loadNodes(loader.getNodeMap().values());
+		System.out.println(orientDB.getVertexLoadTime());
 		orientDB.loadEdges(loader.getEdgeMap());
+		System.out.println(orientDB.getEdgeLoadTime());
 	}
 }

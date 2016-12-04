@@ -4,10 +4,10 @@ import java.util.Collection;
 
 public interface LoadableDatabase
 {
-	public void reset();
 	public void start();
-	public void loadNodes(Collection<DataNode> nodeCollection);
-	public void loadEdges(Collection<DataEdge> edgeCollection);
-	public long getVertexLoadTime();
-	public long getEdgeLoadTime();
+	public long loadNodes(Collection<DataNode> nodeCollection);
+	public long loadEdges(Collection<DataEdge> edgeCollection);
+	public long testReachability(String startVertex);
+	public void stop();
+	public String toString();
 }

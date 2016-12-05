@@ -8,7 +8,7 @@ public class DBLoader
 {
 	public static void main(String[] args)
 	{
-		LoadableDatabase[] databases = {new Neo4j()};
+		LoadableDatabase[] databases = {new OrientDB(), new Neo4j()};
 		
 		for (LoadableDatabase db : databases) {
 			db.start();
@@ -23,6 +23,8 @@ public class DBLoader
 			System.out.println("Edge Load Time: " + edgeLoadTime);
 			
 			System.out.println("Reachability Time: " + db.testReachability("Yeast"));
+			
+			System.out.println("Pattern Matching Time: " + db.testPatternMatching());
 			
 			db.stop();			
 		}

@@ -9,6 +9,7 @@ import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import com.tinkerpop.gremlin.java.GremlinPipeline;
 
 public class OrientDB implements LoadableDatabase
 {
@@ -106,8 +107,13 @@ public class OrientDB implements LoadableDatabase
 	
 	public long testPatternMatching() {
 		
-		//TODO
-		return 0;
+		long startTime = System.currentTimeMillis();
+
+		GremlinPipeline g = new GremlinPipeline(orientDB.getVertices());
+		g.V().as("x").out("link").as("z").out("link").as("y").out("link").as("x").in("link").as("z").in("link").as("y").in("link").as("x");	
+        
+		long patternMatchingTime = System.currentTimeMillis() - startTime;
+		return patternMatchingTime;
 	}
 	
 	public long updateNodes()

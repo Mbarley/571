@@ -106,14 +106,14 @@ public class DataLoader
 			toNode = getOrCreateNode(parts[1]);
 			
 			fromNode.addEdge(toNode.getNodeName());
-			System.out.println("Edge created: " + fromNode.getNodeName() + " -> " + toNode.getNodeName());
+			//System.out.println("Edge created: " + fromNode.getNodeName() + " -> " + toNode.getNodeName());
 			getEdgeMap().add(new DataEdge(fromNode.getNodeName(), toNode.getNodeName()));
 			
 			if(!directed)
 			{
 				toNode.addEdge(fromNode.getNodeName());
 				getEdgeMap().add(new DataEdge(toNode.getNodeName(), fromNode.getNodeName()));
-				System.out.println("Edge created: " + toNode.getNodeName() + " -> " + fromNode.getNodeName());
+				//System.out.println("Edge created: " + toNode.getNodeName() + " -> " + fromNode.getNodeName());
 			}
 			
 			nodeMap.put(fromNode.getNodeName(), fromNode);
@@ -132,7 +132,7 @@ public class DataLoader
 		else
 		{
 			node = new DataNode(nodeName);
-			System.out.println("Node created: " + node.getNodeName()); //test
+			//System.out.println("Node created: " + node.getNodeName()); //test
 		}
 		
 		return node;

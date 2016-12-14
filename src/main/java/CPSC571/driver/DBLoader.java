@@ -36,6 +36,12 @@ public class DBLoader
 			
 			System.out.println("Pattern Matching Time: " + db.testPatternMatching());
 			
+			System.out.println("Node Update Time: " + db.updateNodes());
+			
+			System.out.println("Edge Delete Time: " + db.deleteEdges());
+			
+			System.out.println("Node Delete Time: " + db.deleteNodes());
+			
 			db.stop();			
 		}
 	}
@@ -44,7 +50,7 @@ public class DBLoader
 		DataLoader loader = new DataLoader();
 		try
 		{
-			loader.setInputFile("youtube.txt");
+			loader.setInputFile("links.tsv");
 		}
 		catch (FileNotFoundException e)
 		{

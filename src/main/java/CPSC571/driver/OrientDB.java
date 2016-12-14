@@ -2,7 +2,10 @@ package CPSC571.driver;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 
+import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
@@ -16,6 +19,8 @@ public class OrientDB implements LoadableDatabase
 	public void start()
 	{
 		orientDB = new OrientGraph(DBPath, "admin", "admin");
+		orientDB.drop();
+		orientDB = new OrientGraph(DBPath, "admin", "admin");
 		orientDB.createVertexType("page");
 		orientDB.createEdgeType("link");
 		vertexMap = new HashMap<String, Vertex>();
@@ -23,7 +28,7 @@ public class OrientDB implements LoadableDatabase
 
 	public void stop() {
 		if (orientDB != null) {
-			orientDB.shutdown();
+			orientDB.drop();
 		}
 	}
 	
@@ -36,7 +41,7 @@ public class OrientDB implements LoadableDatabase
 			Vertex vertex = orientDB.addVertex("class:page");
 			vertex.setProperty("name", node.getNodeName());
 			vertexMap.put(node.getNodeName(), vertex);
-			orientDB.commit();
+			//orientDB.commit();
 			//System.out.println("Committed Vertex: " + vertex.getProperty("name"));
 		}
 		
@@ -62,8 +67,8 @@ public class OrientDB implements LoadableDatabase
 			}
 			
 			Edge edge = orientDB.addEdge("class:link", fromVertex, toVertex, "link");
-			orientDB.commit();
-			System.out.println("Committed " + fromVertex.getId() + "->" + toVertex.getId());
+			//orientDB.commit();
+			//System.out.println("Committed " + fromVertex.getId() + "->" + toVertex.getId());
 		}
 		
 		long endTime = System.currentTimeMillis();
@@ -74,8 +79,29 @@ public class OrientDB implements LoadableDatabase
 	
 	public long testReachability(String startVertex) {
 		
-		//TODO
-		return 0;
+		long reachabilityStartTime = System.currentTimeMillis();
+
+		Vertex v = orientDB.getVertex(vertexMap.get(startVertex));
+		
+		//Find all reachable vertices
+		HashSet<Vertex> vSet = new HashSet<Vertex>();
+		findReachable(v, vSet);	
+		
+		long reachabilityTime = System.currentTimeMillis() - reachabilityStartTime;
+		return reachabilityTime;
+	}
+	
+	private void findReachable(Vertex v, HashSet<Vertex> vSet) {
+		Iterable<Vertex> vertices = v.getVertices(Direction.OUT, "link");
+		Iterator<Vertex> i = vertices.iterator();
+
+		while (i.hasNext()) {
+			Vertex adj = (Vertex)i.next();
+			if (!vSet.contains(adj)) {
+				vSet.add(adj);
+				findReachable(adj, vSet);				
+			}
+		}
 	}
 	
 	public String toString() {

@@ -8,11 +8,21 @@ public class DBLoader
 {
 	public static void main(String[] args)
 	{
-		LoadableDatabase[] databases = {new Neo4j()};
+		LoadableDatabase[] databases = {new Neo4j(), new OrientDB()};
+		DataLoader loader = loadDB();
+		int numTests;
+		
+		if(args.length > 1)
+		{
+			numTests = Integer.parseInt(args[1]);
+		}
+		else
+		{
+			numTests = 1;
+		}
 		
 		for (LoadableDatabase db : databases) {
 			db.start();
-			DataLoader loader = loadDB();
 			
 			System.out.println("\n*** " + db + " ***");
 			
@@ -32,7 +42,7 @@ public class DBLoader
 		DataLoader loader = new DataLoader();
 		try
 		{
-			loader.setInputFile("links.tsv");
+			loader.setInputFile("youtube.txt");
 		}
 		catch (FileNotFoundException e)
 		{

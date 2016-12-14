@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.TreeMap;
 
 import com.tinkerpop.blueprints.Direction;
+import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.neo4j2.Neo4j2Graph;
 

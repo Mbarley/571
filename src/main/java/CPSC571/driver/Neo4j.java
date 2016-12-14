@@ -109,6 +109,48 @@ public class Neo4j implements LoadableDatabase
 		return patternMatchingTime;
 	}
 	
+	public long updateNodes()
+	{
+		long startTime = System.currentTimeMillis();
+		
+		for(Vertex vertex : neo4jDB.getVertices())
+		{
+			vertex.setProperty("Update", "Update");
+		}
+		
+		long endTime = System.currentTimeMillis();
+		
+		return endTime - startTime;
+	}
+	
+	public long deleteEdges()
+	{
+		long startTime = System.currentTimeMillis();
+		
+		for(Edge edge : neo4jDB.getEdges())
+		{
+			neo4jDB.removeEdge(edge);
+		}
+		
+		long endTime = System.currentTimeMillis();
+		
+		return endTime - startTime;
+	}
+	
+	public long deleteNodes()
+	{
+		long startTime = System.currentTimeMillis();
+		
+		for(Vertex vertex : neo4jDB.getVertices())
+		{
+			neo4jDB.removeVertex(vertex);
+		}
+		
+		long endTime = System.currentTimeMillis();
+		
+		return endTime - startTime;
+	}
+	
 	public String toString()
 	{
 		return "Neo4j";

@@ -110,6 +110,48 @@ public class OrientDB implements LoadableDatabase
 		return 0;
 	}
 	
+	public long updateNodes()
+	{
+		long startTime = System.currentTimeMillis();
+		
+		for(Vertex vertex : orientDB.getVertices())
+		{
+			vertex.setProperty("Update", "Update");
+		}
+		
+		long endTime = System.currentTimeMillis();
+		
+		return endTime - startTime;
+	}
+	
+	public long deleteEdges()
+	{
+		long startTime = System.currentTimeMillis();
+		
+		for(Edge edge : orientDB.getEdges())
+		{
+			orientDB.removeEdge(edge);
+		}
+		
+		long endTime = System.currentTimeMillis();
+		
+		return endTime - startTime;
+	}
+	
+	public long deleteNodes()
+	{
+		long startTime = System.currentTimeMillis();
+		
+		for(Vertex vertex : orientDB.getVertices())
+		{
+			orientDB.removeVertex(vertex);
+		}
+		
+		long endTime = System.currentTimeMillis();
+		
+		return endTime - startTime;
+	}
+	
 	public String toString() {
 		return "OrientDB";
 	}

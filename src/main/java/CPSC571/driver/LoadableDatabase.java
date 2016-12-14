@@ -9,6 +9,9 @@ public interface LoadableDatabase
 	public long loadEdges(Collection<DataEdge> edgeCollection);
 	public long testReachability(String startVertex);
 	public long testPatternMatching();
+	public long updateNodes();
+	public long deleteEdges();
+	public long deleteNodes();
 	public void stop();
 	public String toString();
 }

@@ -34,6 +34,8 @@ public class DBLoader
 			
 			System.out.println("Reachability Time: " + db.testReachability("Yeast"));
 			
+			System.out.println("Pattern Matching Time: " + db.testPatternMatching());
+			
 			db.stop();			
 		}
 	}

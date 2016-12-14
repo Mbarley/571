@@ -104,6 +104,12 @@ public class OrientDB implements LoadableDatabase
 		}
 	}
 	
+	public long testPatternMatching() {
+		
+		//TODO
+		return 0;
+	}
+	
 	public String toString() {
 		return "OrientDB";
 	}

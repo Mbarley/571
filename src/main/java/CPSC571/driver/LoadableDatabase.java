@@ -8,6 +8,7 @@ public interface LoadableDatabase
 	public long loadNodes(Collection<DataNode> nodeCollection);
 	public long loadEdges(Collection<DataEdge> edgeCollection);
 	public long testReachability(String startVertex);
+	public long testPatternMatching();
 	public void stop();
 	public String toString();
 }

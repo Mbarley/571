@@ -3,13 +3,14 @@ package CPSC571.driver;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.TreeMap;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
+import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.neo4j2.Neo4j2Graph;
+import com.tinkerpop.gremlin.java.GremlinPipeline;
 
 public class Neo4j implements LoadableDatabase
 {
@@ -21,6 +22,8 @@ public class Neo4j implements LoadableDatabase
 
 	private static HashMap<String, Object> vMap;
 		
+	static Graph g;
+	
 	public void start()
 	{
 		neo4jDB = new Neo4j2Graph(path);
@@ -28,8 +31,10 @@ public class Neo4j implements LoadableDatabase
 		vMap = new HashMap<String, Object>();	
 	}
 	
-	public void stop() {
-		if (neo4jDB != null) {
+	public void stop()
+	{
+		if (neo4jDB != null)
+		{
 			neo4jDB.shutdown();
 		}
 	}
@@ -67,9 +72,9 @@ public class Neo4j implements LoadableDatabase
 		return loadTime;
 	}
 	
-	public long testReachability(String startVertex) {
-		
-		long reachabilityStartTime = System.currentTimeMillis();
+	public long testReachability(String startVertex)
+	{
+		long startTime = System.currentTimeMillis();
 
 		Vertex v = neo4jDB.getVertex(vMap.get(startVertex));
 		
@@ -77,24 +82,35 @@ public class Neo4j implements LoadableDatabase
 		HashSet<Vertex> vSet = new HashSet<Vertex>();
 		findReachable(v, vSet);	
 		
-		long reachabilityTime = System.currentTimeMillis() - reachabilityStartTime;
+		long reachabilityTime = System.currentTimeMillis() - startTime;
 		return reachabilityTime;
 	}
 	
-	private void findReachable(Vertex v, HashSet<Vertex> vSet) {
-		Iterable<Vertex> vertices = v.getVertices(Direction.OUT, "link");
-		Iterator<Vertex> i = vertices.iterator();
-
-		while (i.hasNext()) {
-			Vertex adj = (Vertex)i.next();
-			if (!vSet.contains(adj)) {
+	private void findReachable(Vertex v, HashSet<Vertex> vSet)
+	{
+		for (Vertex adj : v.getVertices(Direction.OUT, "link"))
+		{
+			if (!vSet.contains(adj))
+			{
 				vSet.add(adj);
 				findReachable(adj, vSet);				
 			}
 		}
 	}
 	
-	public String toString() {
+	public long testPatternMatching()
+	{
+		long startTime = System.currentTimeMillis();
+
+		GremlinPipeline g = new GremlinPipeline(neo4jDB.getVertices());
+		g.V().as("x").out("link").as("z").out("link").as("y").out("link").as("x").in("link").as("z").in("link").as("y").in("link").as("x");	
+        
+		long patternMatchingTime = System.currentTimeMillis() - startTime;
+		return patternMatchingTime;
+	}
+	
+	public String toString()
+	{
 		return "Neo4j";
 	}
 }

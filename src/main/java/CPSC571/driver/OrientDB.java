@@ -29,7 +29,7 @@ public class OrientDB implements LoadableDatabase
 
 	public void stop() {
 		if (orientDB != null) {
-			orientDB.drop();
+			orientDB.shutdown();
 		}
 	}
 	

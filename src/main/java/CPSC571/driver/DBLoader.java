@@ -153,7 +153,7 @@ public class DBLoader
 			
 			for(int i = 0; i < result.numTests; i++)
 			{
-				System.out.print("Run " + (i + 1) + ",");
+				System.out.print("Run " + (i + 1) + ", ");
 				System.out.print(result.vertexLoadTimes.get(i) + ", ");
 				System.out.print(result.concurrentVertexLoadTimes.get(i) + ", ");
 				System.out.print(result.edgeLoadTimes.get(i) + ", ");
@@ -167,19 +167,6 @@ public class DBLoader
 				System.out.print(result.nodeDeleteTimes.get(i) + ", ");
 				System.out.print(result.concurrentNodeDeleteTimes.get(i) + "\n");;
 			}
-			System.out.print("Average\t");
-			System.out.print(result.averageVertexLoadTime + ", ");
-			System.out.print(result.averageConcurrentVertexLoadTime + ", ");
-			System.out.print(result.averageEdgeLoadTime + ", ");
-			System.out.print(result.averageConcurrentEdgeLoadTime + ", ");
-			System.out.print(result.averageReachabilityTime + ", ");
-			System.out.print(result.averagePatternMatchingTime + ", ");
-			System.out.print(result.averageNodeUpdateTime + ", ");
-			System.out.print(result.averageConcurrentNodeUpdateTime + ", ");
-			System.out.print(result.averageEdgeDeleteTime + ", ");
-			System.out.print(result.averageConcurrentEdgeDeleteTime + ", ");
-			System.out.print(result.averageNodeDeleteTime + ", ");
-			System.out.print(result.averageConcurrentNodeDeleteTime + "\n");
 		}
 		
 		System.setOut(original);

@@ -14,4 +14,5 @@ public interface LoadableDatabase
 	public long deleteNodes();
 	public void stop();
 	public String toString();
+	//public long concurrentUpdatenodes(int amount,int max_concurrent);
 }

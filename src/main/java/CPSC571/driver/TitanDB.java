@@ -5,16 +5,14 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 
-import org.apache.commons.configuration.BaseConfiguration;
-
 import com.thinkaurelius.titan.core.TitanFactory;
 import com.thinkaurelius.titan.core.TitanGraph;
 import com.thinkaurelius.titan.diskstorage.configuration.Configuration;
 
+import org.apache.commons.configuration.BaseConfiguration;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
-import org.apache.tinkerpop.gremlin.structure.Graph;
 
 public class TitanDB implements LoadableDatabase
 {
@@ -30,7 +28,11 @@ public class TitanDB implements LoadableDatabase
 	
 	public void start()
 	{
-		titanDB = new TitanGraph("titan-cassandra.properties");
+        BaseConfiguration configuration = new BaseConfiguration();
+
+        configuration.setProperty("storage.backend", "cassandrathrift");
+        configuration.setProperty("storage.hostname", "localhost");
+		titanDB = TitanFactory.open(configuration);
 		vertexMap = new HashMap<String, Vertex>();
 	}
 

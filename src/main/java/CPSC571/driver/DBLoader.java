@@ -14,7 +14,7 @@ public class DBLoader
 	
 	public static void main(String[] args)
 	{
-		LoadableDatabase[] databases = {new Neo4j(), new OrientDB()};
+		LoadableDatabase[] databases = {new TitanDB(), new Neo4j(), new OrientDB()};
 		DataLoader loader = loadDB(args[0]);
 		int numTests;
 		
@@ -118,7 +118,7 @@ public class DBLoader
 			
 			for(int i = 0; i < result.numTests; i++)
 			{
-				System.out.print("Run " + (i + 1) + "\t");
+				System.out.print("Run " + (i + 1) + ",");
 				System.out.print(result.vertexLoadTimes.get(i) + ", ");
 				System.out.print(result.edgeLoadTimes.get(i) + ", ");
 				System.out.print(result.reachabilityTimes.get(i) + ", ");

@@ -5,20 +5,19 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 
-import org.apache.commons.configuration.BaseConfiguration;
-
 import com.thinkaurelius.titan.core.TitanFactory;
 import com.thinkaurelius.titan.core.TitanGraph;
 import com.thinkaurelius.titan.diskstorage.configuration.Configuration;
+import com.tinkerpop.gremlin.java.GremlinPipeline;
 
+import org.apache.commons.configuration.BaseConfiguration;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
-import org.apache.tinkerpop.gremlin.structure.Graph;
 
 public class TitanDB implements LoadableDatabase
 {
-	private static String DBPath = "plocal:C:/temp/graph/db";
+	private static String DBPath = "plocal:C:/temp/titan/db";
 	private TitanGraph titanDB;
 	private HashMap<String, Vertex> vertexMap;
 	
@@ -26,15 +25,16 @@ public class TitanDB implements LoadableDatabase
 	{
 		TitanDB db = new TitanDB();
 		db.start();
+		db.stop();
 	}
 	
 	public void start()
 	{
-		//titanDB = new TitanGraph("titan-cassandra.properties");
-		titanDB = TitanFactory.build().
-				set("storage.backend", "cassandra").
-				set("storage.hostname", "127.0.0.1").
-				open();
+        BaseConfiguration configuration = new BaseConfiguration();
+
+        configuration.setProperty("storage.backend", "cassandrathrift");
+        configuration.setProperty("storage.hostname", "localhost");
+		titanDB = TitanFactory.open(configuration); 
 		vertexMap = new HashMap<String, Vertex>();
 	}
 
@@ -57,10 +57,11 @@ public class TitanDB implements LoadableDatabase
 		
 		for(DataNode node : nodeCollection)
 		{
-			Vertex vertex = titanDB.addVertex(node.getNodeName());
+			Vertex vertex = titanDB.addVertex("titan" + node.getNodeName());
+			//System.out.println(vertex.label());
 			vertexMap.put(node.getNodeName(), vertex);
 			//orientDB.commit();
-			//System.out.println("Committed Vertex: " + vertex.getProperty("name"));
+			//System.out.println("Committed Vertex: " + vertex.label());
 		}
 		
 		long endTime = System.currentTimeMillis();
@@ -84,9 +85,9 @@ public class TitanDB implements LoadableDatabase
 				continue;
 			}
 			
-			Edge edge = fromVertex.addEdge("name", toVertex, "");
+			Edge edge = fromVertex.addEdge("name", toVertex);
 			//orientDB.commit();
-			//System.out.println("Committed " + fromVertex.getId() + "->" + toVertex.getId());
+			//System.out.println("Committed " + fromVertex.label() + "->" + toVertex.label());
 		}
 		
 		long endTime = System.currentTimeMillis();
@@ -100,8 +101,7 @@ public class TitanDB implements LoadableDatabase
 		long reachabilityStartTime = System.currentTimeMillis();
 
 		Vertex v = titanDB.vertices(null).next();
-		
-		
+			
 		//Find all reachable vertices
 		HashSet<Vertex> vSet = new HashSet<Vertex>();
 		findReachable(v, vSet);	
@@ -123,30 +123,71 @@ public class TitanDB implements LoadableDatabase
 	}
 	
 	public String toString() {
-		return "OrientDB";
+		return "TitanDB";
 	}
 
 	public long testPatternMatching()
 	{
-		// TODO Auto-generated method stub
-		return 0;
+		long startTime = System.currentTimeMillis();
+
+		GremlinPipeline g = new GremlinPipeline(titanDB.vertices(null));
+		g.V().as("x").out("link").as("z").out("link").as("y").out("link").as("x").in("link").as("z").in("link").as("y").in("link").as("x");	
+        
+		long patternMatchingTime = System.currentTimeMillis() - startTime;
+		return patternMatchingTime;
 	}
 
 	public long updateNodes()
 	{
-		// TODO Auto-generated method stub
-		return 0;
+		long startTime = System.currentTimeMillis();
+		
+		Iterator<Vertex> vertices = titanDB.vertices(null);
+		
+		while(vertices.hasNext())
+		{
+			Vertex vertex = vertices.next();
+			vertex.property("Update", "Update");
+		}
+		
+		long endTime = System.currentTimeMillis();
+		long result = endTime - startTime;
+		
+		return result;
 	}
 
 	public long deleteEdges()
 	{
-		// TODO Auto-generated method stub
-		return 0;
+		long startTime = System.currentTimeMillis();
+
+		Iterator<Edge> edges = titanDB.edges(null);
+		
+		while(edges.hasNext())
+		{
+			Edge edge = edges.next();
+			edge.remove();
+		}
+		
+		long endTime = System.currentTimeMillis();
+		long result = endTime - startTime;
+		
+		return result;
 	}
 
 	public long deleteNodes()
 	{
-		// TODO Auto-generated method stub
-		return 0;
+		long startTime = System.currentTimeMillis();
+
+		Iterator<Vertex> vertices = titanDB.vertices(null);
+		
+		while(vertices.hasNext())
+		{
+			Vertex vertex = vertices.next();
+			vertex.remove();
+		}
+		
+		long endTime = System.currentTimeMillis();
+		long result = endTime - startTime;
+		
+		return result;
 	}
 }

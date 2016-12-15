@@ -4,11 +4,16 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import com.thinkaurelius.titan.core.TitanFactory;
 import com.thinkaurelius.titan.core.TitanGraph;
 import com.thinkaurelius.titan.diskstorage.configuration.Configuration;
 import com.tinkerpop.gremlin.java.GremlinPipeline;
+
+import CPSC571.driver.OrientDB.ConcurrentHandler;
 
 import org.apache.commons.configuration.BaseConfiguration;
 import org.apache.tinkerpop.gremlin.structure.Direction;
@@ -57,11 +62,7 @@ public class TitanDB implements LoadableDatabase
 		
 		for(DataNode node : nodeCollection)
 		{
-			Vertex vertex = titanDB.addVertex("titan" + node.getNodeName());
-			//System.out.println(vertex.label());
-			vertexMap.put(node.getNodeName(), vertex);
-			//orientDB.commit();
-			//System.out.println("Committed Vertex: " + vertex.label());
+			loadNode(node);
 		}
 		
 		long endTime = System.currentTimeMillis();
@@ -70,24 +71,50 @@ public class TitanDB implements LoadableDatabase
 		//System.out.println("Vertex Time: " + (vertexLoadEndTime - vertexLoadStartTime));
 		return loadTime;
 	}
-
+	public void loadNode(DataNode node){
+		Vertex vertex = titanDB.addVertex("titan" + node.getNodeName());
+		//System.out.println(vertex.label());
+		vertexMap.put(node.getNodeName(), vertex);
+		//orientDB.commit();
+		//System.out.println("Committed Vertex: " + vertex.label());
+	}
+	//load all nodes concurrently function
+	public long concurrentLoadNodes(Collection<DataNode> nodeCollection, int max_concurrent){
+		//set up executor service pool 
+		ExecutorService pool = Executors.newFixedThreadPool(max_concurrent);
+		//start ze timer
+		long startTime = System.currentTimeMillis();
+		long endTime = -1;
+		//start running the transactions on threads
+		for(DataNode node : nodeCollection){		
+			pool.submit(new ConcurrentHandler(node,false, true));
+		}
+		
+		try {
+			if(!pool.awaitTermination(180, TimeUnit.SECONDS)){
+				//pool did not finish in three minutes
+			    pool.shutdownNow(); // Cancel currently executing tasks
+			    // Wait a while for tasks to respond to being cancelled
+			    if(!pool.awaitTermination(60, TimeUnit.SECONDS)){
+			        System.err.println("Pool did not terminate");
+			    }
+			}else{
+				endTime = System.currentTimeMillis();
+			}
+		} catch (InterruptedException e) {
+			//Recieved an exception awaiting thread termination 
+			e.printStackTrace();
+		}
+		
+		return endTime - startTime;
+	}
 	public long loadEdges(Collection<DataEdge> edgeCollection)
 	{
 		long startTime = System.currentTimeMillis();
 		
 		for(DataEdge dataEdge : edgeCollection)
 		{
-			Vertex fromVertex = vertexMap.get(dataEdge.getFromNode());
-			Vertex toVertex = vertexMap.get(dataEdge.getToNode());
-			
-			if(fromVertex == null || toVertex == null)
-			{
-				continue;
-			}
-			
-			Edge edge = fromVertex.addEdge("name", toVertex);
-			//orientDB.commit();
-			//System.out.println("Committed " + fromVertex.label() + "->" + toVertex.label());
+			loadEdge(dataEdge);
 		}
 		
 		long endTime = System.currentTimeMillis();
@@ -95,7 +122,45 @@ public class TitanDB implements LoadableDatabase
 		
 		return loadTime;
 	}
-	
+	public void loadEdge(DataEdge dataEdge){
+		Vertex fromVertex = vertexMap.get(dataEdge.getFromNode());
+		Vertex toVertex = vertexMap.get(dataEdge.getToNode());
+		
+		if(fromVertex != null && toVertex != null)
+			fromVertex.addEdge("name", toVertex);
+		//orientDB.commit();
+		//System.out.println("Committed " + fromVertex.label() + "->" + toVertex.label());
+	}
+	//load all edges concurrently function
+	public long concurrentLoadEdges(Collection<DataEdge> edgeCollection, int max_concurrent){
+		//set up executor service pool 
+		ExecutorService pool = Executors.newFixedThreadPool(max_concurrent);
+		//start ze timer
+		long startTime = System.currentTimeMillis();
+		long endTime = -1;
+		//start running the transactions on threads
+		for(DataEdge edge : edgeCollection){		
+			pool.submit(new ConcurrentHandler(edge,true, true));
+		}
+		
+		try {
+			if(!pool.awaitTermination(180, TimeUnit.SECONDS)){
+				//pool did not finish in three minutes
+			    pool.shutdownNow(); // Cancel currently executing tasks
+			    // Wait a while for tasks to respond to being cancelled
+			    if(!pool.awaitTermination(60, TimeUnit.SECONDS)){
+			        System.err.println("Pool did not terminate");
+			    }
+			}else{
+				endTime = System.currentTimeMillis();
+			}
+		} catch (InterruptedException e) {
+			//Recieved an exception awaiting thread termination 
+			e.printStackTrace();
+		}
+		
+		return endTime - startTime;
+	}	
 	public long testReachability(String startVertex) {
 		
 		long reachabilityStartTime = System.currentTimeMillis();
@@ -146,7 +211,7 @@ public class TitanDB implements LoadableDatabase
 		while(vertices.hasNext())
 		{
 			Vertex vertex = vertices.next();
-			vertex.property("Update", "Update");
+			updateNode(vertex);
 		}
 		
 		long endTime = System.currentTimeMillis();
@@ -154,7 +219,39 @@ public class TitanDB implements LoadableDatabase
 		
 		return result;
 	}
-
+	public void updateNode(Vertex vertex){
+		vertex.property("Update", "Update");
+	}
+	public long concurrentUpdateNodes(int max_concurrent){
+		//set up executor service pool 
+		ExecutorService pool = Executors.newFixedThreadPool(max_concurrent);
+		Iterator<Vertex> vertices = titanDB.vertices(null);
+		//start ze timer
+		long startTime = System.currentTimeMillis();
+		long endTime = -1;
+		//start running the updates on threads
+		while(vertices.hasNext()){
+			pool.submit(new ConcurrentHandler(vertices.next()));
+		}
+			
+		try {
+			if(!pool.awaitTermination(180, TimeUnit.SECONDS)){
+				//pool did not finish in three minutes
+			    pool.shutdownNow(); // Cancel currently executing tasks
+			    // Wait a while for tasks to respond to being cancelled
+			    if(!pool.awaitTermination(60, TimeUnit.SECONDS)){
+			        System.err.println("Pool did not terminate");
+			    }
+			}else{
+				endTime = System.currentTimeMillis();
+			}
+		} catch (InterruptedException e) {
+			//Recieved an exception awaiting thread termination 
+			e.printStackTrace();
+		}
+		
+		return endTime - startTime;
+	}
 	public long deleteEdges()
 	{
 		long startTime = System.currentTimeMillis();
@@ -164,7 +261,7 @@ public class TitanDB implements LoadableDatabase
 		while(edges.hasNext())
 		{
 			Edge edge = edges.next();
-			edge.remove();
+			deleteEdge(edge);
 		}
 		
 		long endTime = System.currentTimeMillis();
@@ -172,7 +269,39 @@ public class TitanDB implements LoadableDatabase
 		
 		return result;
 	}
-
+	public void deleteEdge(Edge edge){
+		edge.remove();
+	}
+	public long concurrentDeleteEdges(int max_concurrent){
+		//set up executor service pool 
+		ExecutorService pool = Executors.newFixedThreadPool(max_concurrent);
+		Iterator<Edge> edges = titanDB.edges(null);
+		//start ze timer
+		long startTime = System.currentTimeMillis();
+		long endTime = -1;
+		//start running the transactions on threads
+		while(edges.hasNext()){	
+			pool.submit(new ConcurrentHandler(edges.next(),true, false));
+		}
+		
+		try {
+			if(!pool.awaitTermination(180, TimeUnit.SECONDS)){
+				//pool did not finish in three minutes
+			    pool.shutdownNow(); // Cancel currently executing tasks
+			    // Wait a while for tasks to respond to being cancelled
+			    if(!pool.awaitTermination(60, TimeUnit.SECONDS)){
+			        System.err.println("Pool did not terminate");
+			    }
+			}else{
+				endTime = System.currentTimeMillis();
+			}
+		} catch (InterruptedException e) {
+			//Recieved an exception awaiting thread termination 
+			e.printStackTrace();
+		}
+		
+		return endTime - startTime;
+	}
 	public long deleteNodes()
 	{
 		long startTime = System.currentTimeMillis();
@@ -182,7 +311,7 @@ public class TitanDB implements LoadableDatabase
 		while(vertices.hasNext())
 		{
 			Vertex vertex = vertices.next();
-			vertex.remove();
+			deleteNode(vertex);
 		}
 		
 		long endTime = System.currentTimeMillis();
@@ -190,4 +319,90 @@ public class TitanDB implements LoadableDatabase
 		
 		return result;
 	}
+	public void deleteNode(Vertex vertex){
+		vertex.remove();
+	}
+	public long concurrentDeleteNodes(int max_concurrent){
+		//set up executor service pool 
+		ExecutorService pool = Executors.newFixedThreadPool(max_concurrent);
+		//start ze timer
+		Iterator<Vertex> vertices = titanDB.vertices(null);
+		long startTime = System.currentTimeMillis();
+		long endTime = -1;
+		//start running the transactions on threads
+		while(vertices.hasNext()){		
+			pool.submit(new ConcurrentHandler(vertices.next(),false, false));
+		}
+		
+		//wait to finish
+		try {
+			if(!pool.awaitTermination(180, TimeUnit.SECONDS)){
+				//pool did not finish in three minutes
+			    pool.shutdownNow(); // Cancel currently executing tasks
+			    // Wait a while for tasks to respond to being cancelled
+			    if(!pool.awaitTermination(60, TimeUnit.SECONDS)){
+			        System.err.println("Pool did not terminate");
+			    }
+			}else{
+				endTime = System.currentTimeMillis();
+			}
+		} catch (InterruptedException e) {
+			//Recieved an exception awaiting thread termination 
+			e.printStackTrace();
+		}
+		
+		return endTime - startTime;
+	}
+	class ConcurrentHandler implements Runnable {
+		//constructor should take method being run by the thread
+		
+		//data we are ading deleteing
+		private Object data;
+		//data we are updating
+		
+		private int type;
+		private boolean adding;
+		
+		private static final int NODE = -1;
+		private static final int EDGE = 1;
+		private static final int UPDATE = 0;
+		
+		//CONSTRUCTOR FOR ADDING AND REMOVING DATA
+		public ConcurrentHandler(Object data, boolean isEdge, boolean adding){
+			this.data = data;
+			if(isEdge){
+				type = EDGE;
+			}else{
+				type = NODE;
+			}
+			this.adding = adding;
+		}
+		
+		//CONSTRUCTOR FOR UPDATING NODES
+		public ConcurrentHandler(Object data){
+			type = UPDATE;
+			this.data = data;
+		}
+		
+		//run method
+		//this vs the guy she tells you about
+		public void run() {
+			if(type == UPDATE){
+				updateNode((Vertex) data);
+			}else if(type == EDGE){
+				if(adding){
+					loadEdge((DataEdge) data);
+				}else{
+					deleteEdge((Edge) data);
+				}
+			}else if(type == NODE){
+				if(adding){
+					loadNode((DataNode) data);
+				}else{
+					deleteNode((Vertex) data);
+				}
+			}
+		}
+	}
+	
 }

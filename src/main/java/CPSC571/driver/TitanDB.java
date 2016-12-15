@@ -30,7 +30,11 @@ public class TitanDB implements LoadableDatabase
 	
 	public void start()
 	{
-		titanDB = new TitanGraph("titan-cassandra.properties");
+		//titanDB = new TitanGraph("titan-cassandra.properties");
+		titanDB = TitanFactory.build().
+				set("storage.backend", "cassandra").
+				set("storage.hostname", "127.0.0.1").
+				open();
 		vertexMap = new HashMap<String, Vertex>();
 	}
 

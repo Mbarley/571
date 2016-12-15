@@ -38,7 +38,7 @@ public class DBLoader
 				db.start();
 				
 				System.out.println("\n*** " + db + " ***");
-				System.out.println("Run " + (i + 1));
+				System.out.println("Run " + (i + 1) + "\t");
 				
 				long vertexLoadTime = db.loadNodes(loader.getNodeMap().values());
 				dbResults.totalVertexLoadTime += vertexLoadTime;

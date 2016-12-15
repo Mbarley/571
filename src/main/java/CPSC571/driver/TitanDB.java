@@ -9,23 +9,28 @@ import org.apache.commons.configuration.BaseConfiguration;
 
 import com.thinkaurelius.titan.core.TitanFactory;
 import com.thinkaurelius.titan.core.TitanGraph;
+import com.thinkaurelius.titan.diskstorage.configuration.Configuration;
 
+import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 
-
 public class TitanDB implements LoadableDatabase
 {
 	private static String DBPath = "plocal:C:/temp/graph/db";
-	private Graph titanDB;
+	private TitanGraph titanDB;
 	private HashMap<String, Vertex> vertexMap;
 	
-
+	public static void main(String args[])
+	{
+		TitanDB db = new TitanDB();
+		db.start();
+	}
+	
 	public void start()
 	{
-		BaseConfiguration baseConfiguration = new BaseConfiguration();
-		titanDB = TitanFactory.open(baseConfiguration);
+		titanDB = new TitanGraph("titan-cassandra.properties");
 		vertexMap = new HashMap<String, Vertex>();
 	}
 
@@ -90,23 +95,22 @@ public class TitanDB implements LoadableDatabase
 		
 		long reachabilityStartTime = System.currentTimeMillis();
 
-		Vertex v = titanDB.(vertexMap.get(startVertex));
+		Vertex v = titanDB.vertices(null).next();
 		
 		
 		//Find all reachable vertices
-		HashSet<TitanVertex> vSet = new HashSet<TitanVertex>();
+		HashSet<Vertex> vSet = new HashSet<Vertex>();
 		findReachable(v, vSet);	
 		
 		long reachabilityTime = System.currentTimeMillis() - reachabilityStartTime;
 		return reachabilityTime;
 	}
 	
-	private void findReachable(TitanVertex v, HashSet<TitanVertex> vSet) {
-		Iterable<Vertex> vertices = v.getVertices(Direction.OUT, "link");
-		Iterator<Vertex> i = vertices.iterator();
-
-		while (i.hasNext()) {
-			Vertex adj = (Vertex)i.next();
+	private void findReachable(Vertex v, HashSet<Vertex> vSet) {
+		Iterator<Edge> vertices = v.edges(Direction.OUT, "link");
+		
+		while (vertices.hasNext()) {
+			Vertex adj = (Vertex)vertices.next();
 			if (!vSet.contains(adj)) {
 				vSet.add(adj);
 				findReachable(adj, vSet);				
